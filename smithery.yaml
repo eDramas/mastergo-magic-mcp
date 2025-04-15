@@ -1,0 +1,48 @@
+# Smithery configuration file: https://smithery.ai/docs/config#smitheryyaml
+
+startCommand:
+  type: stdio
+  configSchema:
+    # JSON Schema defining the configuration options for the MCP.
+    type: object
+    required:
+      - token
+    properties:
+      token:
+        type: string
+        description: The MasterGo API token
+      url:
+        type: string
+        default: http://localhost:3000
+        description: The API base url
+      debug:
+        type: boolean
+        default: false
+        description: Enable debug mode
+      rules:
+        type: array
+        items:
+          type: string
+        description: Array of rules
+  commandFunction:
+    # A JS function that produces the CLI command based on the given config to start the MCP on stdio.
+    |-
+    (config) => ({
+      command: 'node',
+      args: ['bin/cli.js', '--token', config.token, '--url', config.url || 'http://localhost:3000']
+        .concat(config.debug ? ['--debug'] : [])
+        .concat(config.rules && config.rules.length ? config.rules.reduce((acc, rule) => acc.concat(['--rule', rule]), []) : []),
+      env: {
+        MASTERGO_API_TOKEN: config.token,
+        API_BASE_URL: config.url || 'http://localhost:3000',
+        DEBUG: config.debug ? 'true' : 'false',
+        RULES: config.rules ? JSON.stringify(config.rules) : '[]'
+      }
+    })
+  exampleConfig:
+    token: YOUR_MASTERGO_API_TOKEN
+    url: http://localhost:3000
+    debug: true
+    rules:
+      - rule1
+      - rule2
